@@ -15,6 +15,7 @@ Rules:
 - Work only under your assigned `sandbox/<run-id>/<agent-name>/` folder.
 - Run Python only through `uv run ...`.
 - Use current web/news sources and cite them in the result.
+- Use provided IBKR API news as supplemental broker news; do not treat missing IBKR headlines as signal.
 - Separate facts, assumptions, estimates, and opinions.
 - Include historical trends, simple statistical checks, contrary evidence, and bias risks.
 - Prune irrelevant routes and explain why they were discarded.

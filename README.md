@@ -6,6 +6,7 @@ It gives Copilot agents deterministic Python commands for:
 
 - resolving company names to tickers
 - loading live IBKR portfolio context
+- loading supplemental subscribed IBKR API news
 - building target or restructure context
 - writing research/council reports
 - validating order intent
@@ -90,21 +91,27 @@ Not to be done by user, give the input in natural language to Github Copilot / C
    uv run python -m ibkr.scripts.target_context --target NET --snapshot sandbox/run/portfolio.json --output sandbox/run/target-context.json
    ```
 
-5. Run web-grounded research through `research-orchestrator`.
-6. Run council review through `council-orchestrator`.
-7. Write final report:
+5. Load subscribed IBKR API news:
+
+   ```powershell
+   uv run python -m ibkr.scripts.ibkr_news --target NET --output sandbox/run/ibkr-news.json
+   ```
+
+6. Run web-grounded research through `research-orchestrator`.
+7. Run council review through `council-orchestrator`.
+8. Write final report:
 
    ```powershell
    uv run python -m ibkr.scripts.write_report --input sandbox/run/report-input.json
    ```
 
-8. If action exists, validate intent:
+9. If action exists, validate intent:
 
    ```powershell
    uv run python -m ibkr.scripts.create_order_intent --input sandbox/run/order-intent.json --output sandbox/run/validated-intent.json
    ```
 
-9. Submit only after exact user confirmation in interactive terminal:
+10. Submit only after exact user confirmation in interactive terminal:
 
    ```powershell
    uv run python -m ibkr.scripts.submit_order --input sandbox/run/validated-intent.json
