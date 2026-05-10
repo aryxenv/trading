@@ -17,4 +17,10 @@ Block the action unless all are true:
 - Risk limits are explicit or the decision is no action.
 - The user confirms the exact generated confirmation phrase.
 
+Command sequence:
+1. Run `uv run python -m ibkr.scripts.create_order_intent --input <order-intent.json> --output <validated-intent.json>`.
+2. Show the generated confirmation phrase to the user.
+3. Only after the user explicitly confirms, run `uv run python -m ibkr.scripts.submit_order --input <validated-intent.json>` in an interactive terminal.
+
 Do not infer confirmation from intent, prior messages, or partial agreement.
+Do not pass confirmation through command arguments, files, or generated text.

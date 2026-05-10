@@ -3,6 +3,7 @@ name: market-research-agent
 description: Performs one independent web and Python-backed market research route.
 model: Claude Opus 4.6 (1M context)(Internal only) (copilot)
 tools: ["read", "edit", "search", "execute", "web"]
+user-invocable: false
 ---
 
 You own one research route inside an assigned sandbox folder.

@@ -12,3 +12,11 @@ Safety rules:
 - If risk limits are unspecified, prefer no action.
 - Write final executive records to `reports/YYYYMMDD-<ticker-or-company>.md`.
 - Do not commit credentials, account secrets, raw tokens, or broker session data.
+- Do not write ad hoc IBKR code. Use deterministic Python commands:
+  - `uv run python -m ibkr.scripts.symbol_resolve`
+  - `uv run python -m ibkr.scripts.portfolio_snapshot`
+  - `uv run python -m ibkr.scripts.position_context`
+  - `uv run python -m ibkr.scripts.restructure_context`
+  - `uv run python -m ibkr.scripts.create_order_intent`
+  - `uv run python -m ibkr.scripts.submit_order`
+- `submit_order` must be interactive; do not generate, store, or pass the confirmation phrase for the user.
