@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from argparse import ArgumentParser, Namespace
 
-from ibkr.audit import ExecutiveDecisionRecord, write_executive_report
+from ibkr.audit import ExecutiveDecisionRecord, report_path, write_executive_report
 from ibkr.scripts.common import add_output_arg, run
 from ibkr.serialization import read_json
 
@@ -28,8 +28,16 @@ def main_impl(args: Namespace) -> dict[str, object]:
         proposed_action=str(data["proposed_action"]),
         confirmation_status=str(data["confirmation_status"]),
     )
-    path = write_executive_report(record, reports_dir=args.reports_dir)
-    return {"schema_version": "ibkr.write_report_result.v1", "path": str(path)}
+    run_id = str(data.get("run_id") or "").strip() or None
+    canonical_path = report_path(record.target, reports_dir=args.reports_dir)
+    path = write_executive_report(record, reports_dir=args.reports_dir, run_id=run_id)
+    return {
+        "schema_version": "ibkr.write_report_result.v1",
+        "path": str(path),
+        "canonical_path": str(canonical_path),
+        "actual_path": str(path),
+        "collision_reason": "canonical_exists" if path != canonical_path else None,
+    }
 
 
 def main() -> int:
