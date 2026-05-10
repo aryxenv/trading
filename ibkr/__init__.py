@@ -2,7 +2,7 @@
 
 from .audit import ExecutiveDecisionRecord, report_path, write_executive_report
 from .client import IBKRClientError, LiveIBKRClient, stock_contract
-from .config import IBKRConfig, IBKRConfigError
+from .config import IBKRConfig, IBKRConfigError, load_env_file
 from .orders import (
     ConfirmedOrderIntent,
     OrderIntent,
@@ -42,6 +42,7 @@ __all__ = [
     "build_ibapi_order",
     "confirm_live_order",
     "context_for_target",
+    "load_env_file",
     "report_path",
     "required_confirmation",
     "require_full_portfolio",

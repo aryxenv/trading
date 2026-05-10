@@ -28,14 +28,19 @@ uv venv
 uv sync
 ```
 
-Set IBKR live API env vars:
+Create local config:
 
 ```powershell
-$env:IBKR_HOST = "127.0.0.1"
-$env:IBKR_PORT = "7496"
-$env:IBKR_CLIENT_ID = "7"
-$env:IBKR_ACCOUNT_ID = "<your-live-account-id>"
+Copy-Item .env.example .env
 ```
+
+Then fill `.env`:
+
+- `IBKR_HOST`: TWS/IB Gateway host, usually `127.0.0.1`.
+- `IBKR_PORT`: live API socket port from TWS/IB Gateway API settings, usually `7496`. Paper ports are blocked.
+- `IBKR_CLIENT_ID`: stable API client id, default `7`.
+- `IBKR_ACCOUNT_ID`: live account id from IBKR/TWS account selector.
+- `IBKR_TIMEOUT_SECONDS`: API timeout, default `30`.
 
 Check config:
 
