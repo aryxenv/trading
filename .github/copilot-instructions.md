@@ -13,4 +13,3 @@
 - Prefer no action when evidence is stale, weak, conflicting, or risk limits are unspecified.
 - Research agents must write scratch work under `sandbox/<run-id>/<agent-name>/`.
 - Final executive decision records go in `reports/YYYYMMDD-<ticker-or-company>.md`.
-- Use the bound skills in `.github/skills`; do not create free-floating skills.
