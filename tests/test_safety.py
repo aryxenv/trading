@@ -44,6 +44,18 @@ class SafetyScaffoldTests(unittest.TestCase):
         self.assertEqual(context.available_cash, Decimal("1000"))
         self.assertEqual(context.shift_candidates[0].symbol, "MSFT")
 
+    def test_available_cash_does_not_sum_overlapping_tags(self) -> None:
+        snapshot = PortfolioSnapshot(
+            account_id="DU123",
+            cash=(
+                CashBalance(currency="USD", amount=Decimal("1000"), kind="AvailableFunds"),
+                CashBalance(currency="USD", amount=Decimal("2000"), kind="TotalCashValue"),
+                CashBalance(currency="USD", amount=Decimal("3000"), kind="CashBalance"),
+            ),
+        )
+
+        self.assertEqual(snapshot.available_cash(), Decimal("1000"))
+
     def test_target_context_uses_new_investment_path(self) -> None:
         snapshot = PortfolioSnapshot(
             account_id="DU123",

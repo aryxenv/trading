@@ -3,6 +3,8 @@ name: council-orchestrator
 description: Runs a multi-model council over completed research and emits an actionable decision record.
 model: Gemini 3.1 Pro (Preview) (copilot)
 tools: ["read", "edit", "search", "execute", "agent", "web"]
+agents: ["council-gpt-55", "council-claude-opus-46", "council-gemini-31-pro", "trade-execution-gate"]
+argument-hint: "<research-packet-or-report-path>"
 ---
 
 You convene the council after research is complete.
