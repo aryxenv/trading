@@ -69,6 +69,28 @@ uv run python -m ibkr.scripts.health_check
 uv run python -m ibkr.scripts.health_check --connect
 ```
 
+## Ideal Inputs
+
+### Per ticker/company
+
+By ticker:
+
+```txt
+PLTR
+```
+
+By company:
+
+```txt
+Cloudflare
+```
+
+### Restructure portfolio
+
+```txt
+Restructure
+```
+
 ## Normal flow
 
 Not to be done by user, give the input in natural language to Github Copilot / Copilot CLI and it will run everything for you.
@@ -119,21 +141,21 @@ Prior reports under `reports/` are audit logs. They should not be read or cited 
 
 10. The council votes separately for short-term, medium-term, long-term, then writes the final report by running:
 
-   ```powershell
-   uv run python -m ibkr.scripts.write_report --input sandbox/run/report-input.json
-   ```
+```powershell
+uv run python -m ibkr.scripts.write_report --input sandbox/run/report-input.json
+```
 
 11. If action exists, validate intent:
 
-   ```powershell
-   uv run python -m ibkr.scripts.create_order_intent --input sandbox/run/order-intent.json --output sandbox/run/validated-intent.json
-   ```
+```powershell
+uv run python -m ibkr.scripts.create_order_intent --input sandbox/run/order-intent.json --output sandbox/run/validated-intent.json
+```
 
 12. Submit only after exact user confirmation in interactive terminal:
 
-   ```powershell
-   uv run python -m ibkr.scripts.submit_order --input sandbox/run/validated-intent.json
-   ```
+```powershell
+uv run python -m ibkr.scripts.submit_order --input sandbox/run/validated-intent.json
+```
 
 ## Portfolio restructure flow
 
