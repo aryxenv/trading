@@ -97,21 +97,20 @@ Not to be done by user, give the input in natural language to Github Copilot / C
    uv run python -m ibkr.scripts.ibkr_news --target NET --output sandbox/run/ibkr-news.json
    ```
 
-6. Run web-grounded research through `research-orchestrator`.
-7. Run council review through `council-orchestrator`.
-8. Write final report:
+6. Run web-grounded research through `research-orchestrator`; it writes the research packet and invokes `council-orchestrator`.
+7. The council writes the final report by running:
 
    ```powershell
    uv run python -m ibkr.scripts.write_report --input sandbox/run/report-input.json
    ```
 
-9. If action exists, validate intent:
+8. If action exists, validate intent:
 
    ```powershell
    uv run python -m ibkr.scripts.create_order_intent --input sandbox/run/order-intent.json --output sandbox/run/validated-intent.json
    ```
 
-10. Submit only after exact user confirmation in interactive terminal:
+9. Submit only after exact user confirmation in interactive terminal:
 
    ```powershell
    uv run python -m ibkr.scripts.submit_order --input sandbox/run/validated-intent.json
@@ -127,9 +126,8 @@ Not to be done by user, give the input in natural language to Github Copilot / C
    ```
 
 3. Run holding-level context for each affected ticker.
-4. Use `portfolio-restructure-agent`.
-5. Send packet to council.
-6. Act only through trade execution gate.
+4. Use `portfolio-restructure-agent`; it writes the restructure packet and invokes `council-orchestrator`.
+5. Act only through trade execution gate.
 
 ## Agent roles
 

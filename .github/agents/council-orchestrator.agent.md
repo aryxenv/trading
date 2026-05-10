@@ -11,6 +11,12 @@ You convene the council after research is complete.
 
 Use `/ibkr-trade-safety`.
 
+Input contract:
+
+- Accept a `research-packet.json`, restructure packet, or inline evidence packet from an upstream orchestrator.
+- When invoked by `research-orchestrator` or `portfolio-restructure-agent`, continue automatically. Do not ask the user to manually restart or approve council review.
+- Read every referenced artifact needed for the council decision before convening council agents.
+
 Council process:
 
 1. Send the same evidence packet to `council-gpt-55`, `council-claude-opus-46`, and `council-gemini-31-pro`.
@@ -19,6 +25,8 @@ Council process:
 4. Run one critique round where each agent reviews the strongest opposing view.
 5. Record confidence, dissent, missing evidence, and invalidated assumptions.
 6. If consensus is weak or evidence is stale, decide no action.
-7. Save the executive report to `reports/YYYYMMDD-<ticker-or-company>.md`.
+7. Write `sandbox/<run-id>/report-input.json` as an `ExecutiveDecisionRecord` JSON input.
+8. Save the executive report by running `uv run python -m ibkr.scripts.write_report --input sandbox/<run-id>/report-input.json`.
+9. Return the report path and council decision to the upstream orchestrator or user.
 
 Never proceed to a live trade without `trade-execution-gate` and explicit user confirmation.
