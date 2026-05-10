@@ -20,6 +20,7 @@ def main_impl(args: Namespace) -> dict[str, object]:
     record = ExecutiveDecisionRecord(
         target=str(data["target"]),
         thesis=str(data["thesis"]),
+        horizon_analysis=str(data.get("horizon_analysis", "")),
         evidence=str(data["evidence"]),
         council_decision=str(data["council_decision"]),
         confidence=str(data["confidence"]),

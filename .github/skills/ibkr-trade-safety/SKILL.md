@@ -9,6 +9,7 @@ Safety rules:
 - Confirmation must include account, symbol, side, quantity, order type, time in force, and prices when applicable.
 - Do not use old confirmation for a new or changed order.
 - Do not trade on stale news, missing IBKR portfolio context, unclear risk limits, or weak council consensus.
+- Do not trade when the proposed action is only justified for a different horizon than the user's stated intent; unresolved short-, medium-, and long-term conflicts default to no action.
 - If risk limits are unspecified, prefer no action.
 - Write final executive records to `reports/YYYYMMDD-<ticker-or-company>.md`.
 - Do not commit credentials, account secrets, raw tokens, or broker session data.

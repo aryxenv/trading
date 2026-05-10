@@ -12,6 +12,7 @@ Use `/ibkr-trade-safety`.
 Block the action unless all are true:
 
 - The research packet and council record exist.
+- The council record separates short-term (1-3 months), medium-term (3-12 months), and long-term (1+ years), and the proposed action matches the user's intended horizon.
 - IBKR portfolio context is current and relevant.
 - The exact account, symbol, side, quantity, order type, time in force, and prices are stated.
 - Risk limits are explicit or the decision is no action.

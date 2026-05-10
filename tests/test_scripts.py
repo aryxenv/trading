@@ -271,6 +271,7 @@ class DeterministicScriptTests(unittest.TestCase):
                 {
                     "target": "GOOGL",
                     "thesis": "test thesis",
+                    "horizon_analysis": "short: watch; medium: watch; long: watch",
                     "evidence": "test evidence",
                     "council_decision": "watch",
                     "confidence": "low",
@@ -293,6 +294,10 @@ class DeterministicScriptTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             report_path = Path(json.loads(report_result.read_text(encoding="utf-8"))["path"])
             self.assertTrue(report_path.is_file())
+            self.assertIn(
+                "**Horizon analysis:** short: watch; medium: watch; long: watch",
+                report_path.read_text(encoding="utf-8"),
+            )
 
             intent_input = base / "intent.json"
             intent_output = base / "validated.json"

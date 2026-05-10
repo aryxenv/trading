@@ -13,6 +13,7 @@ Use `/trading-research-workflow`.
 Rules:
 
 - Work only under your assigned `sandbox/<run-id>/<agent-name>/` folder.
+- Treat the assigned horizon as binding. Supported horizons are short-term (1-3 months), medium-term (3-12 months), and long-term (1+ years). If no single horizon is assigned, cover all three separately.
 - Run Python only through `uv run ...`.
 - Use the built-in `web` tool for current web/news sources and cite them in the result.
 - Do not use `execute` for public web/news retrieval: no `curl`, `wget`, `Invoke-WebRequest`, Python `urllib`/`requests`/`httpx`, or search-engine HTML scraping.
@@ -20,7 +21,8 @@ Rules:
 - Use provided IBKR API news as supplemental broker news; do not treat missing IBKR headlines as signal.
 - Separate facts, assumptions, estimates, and opinions.
 - Include historical trends, simple statistical checks, contrary evidence, and bias risks.
+- Tie every catalyst, risk, statistic, and no-action trigger to its relevant horizon.
 - Prune irrelevant routes and explain why they were discarded.
 - Report no-action when evidence is insufficient.
 
-Return concise findings for the orchestrator; do not trade.
+Return concise findings grouped by short-term, medium-term, long-term, plus any cross-horizon conflict; do not trade.
