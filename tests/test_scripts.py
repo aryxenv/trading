@@ -332,6 +332,179 @@ class DeterministicScriptTests(unittest.TestCase):
                 "CONFIRM LIVE IBKR DU123 BUY 1 GOOGL LMT LIMIT 100 TIF DAY",
             )
 
+    def test_write_report_collision_uses_run_id_suffix(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            reports_dir = base / "reports"
+            report_input = base / "record.json"
+            first_result = base / "first-result.json"
+            second_result = base / "second-result.json"
+            write_json(
+                report_input,
+                {
+                    "run_id": "run-1",
+                    "target": "GOOGL",
+                    "thesis": "test thesis",
+                    "horizon_analysis": "short: watch; medium: watch; long: watch",
+                    "evidence": "test evidence",
+                    "council_decision": "watch",
+                    "confidence": "low",
+                    "dissent": "none",
+                    "proposed_action": "no action",
+                    "confirmation_status": "not confirmed",
+                },
+            )
+
+            first = _run_script(
+                "ibkr.scripts.write_report",
+                "--input",
+                str(report_input),
+                "--reports-dir",
+                str(reports_dir),
+                "--output",
+                str(first_result),
+            )
+            second = _run_script(
+                "ibkr.scripts.write_report",
+                "--input",
+                str(report_input),
+                "--reports-dir",
+                str(reports_dir),
+                "--output",
+                str(second_result),
+            )
+
+            self.assertEqual(first.returncode, 0, first.stderr)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            first_data = json.loads(first_result.read_text(encoding="utf-8"))
+            second_data = json.loads(second_result.read_text(encoding="utf-8"))
+            self.assertEqual(first_data["path"], first_data["canonical_path"])
+            self.assertEqual(second_data["collision_reason"], "canonical_exists")
+            self.assertTrue(Path(second_data["path"]).stem.endswith("googl-run-1"))
+
+    def test_research_packet_validator_accepts_complete_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            packet_path = _write_research_packet_fixture(base)
+            output_path = base / "validation.json"
+
+            result = _run_script(
+                "ibkr.scripts.validate_research_packet",
+                "--input",
+                str(packet_path),
+                "--base-dir",
+                str(base),
+                "--output",
+                str(output_path),
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            data = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertTrue(data["valid"])
+            self.assertEqual(data["error_count"], 0)
+
+    def test_research_packet_validator_rejects_empty_route_folder(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            packet_path = _write_research_packet_fixture(base, write_findings=False)
+            output_path = base / "validation.json"
+
+            result = _run_script(
+                "ibkr.scripts.validate_research_packet",
+                "--input",
+                str(packet_path),
+                "--base-dir",
+                str(base),
+                "--output",
+                str(output_path),
+            )
+
+            self.assertEqual(result.returncode, 1)
+            data = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertFalse(data["valid"])
+            self.assertTrue(any(issue["code"] == "route.findings_missing" for issue in data["issues"]))
+
+    def test_research_packet_validator_flags_unsupported_agent_claims(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            packet_path = _write_research_packet_fixture(base, unsupported_agent_claim=True)
+            output_path = base / "validation.json"
+
+            result = _run_script(
+                "ibkr.scripts.validate_research_packet",
+                "--input",
+                str(packet_path),
+                "--base-dir",
+                str(base),
+                "--fail-on-warnings",
+                "--output",
+                str(output_path),
+            )
+
+            self.assertEqual(result.returncode, 1)
+            data = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertTrue(any(issue["code"] == "finding.unsupported_agent_claim" for issue in data["issues"]))
+
+    def test_research_packet_validator_rejects_prior_report_sources(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            packet_path = _write_research_packet_fixture(base, prior_report_source=True)
+            output_path = base / "validation.json"
+
+            result = _run_script(
+                "ibkr.scripts.validate_research_packet",
+                "--input",
+                str(packet_path),
+                "--base-dir",
+                str(base),
+                "--output",
+                str(output_path),
+            )
+
+            self.assertEqual(result.returncode, 1)
+            data = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertTrue(any(issue["code"] == "finding.prior_report_source" for issue in data["issues"]))
+
+    def test_council_record_validator_accepts_member_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            record_path = _write_council_record_fixture(base)
+            output_path = base / "validation.json"
+
+            result = _run_script(
+                "ibkr.scripts.validate_council_record",
+                "--input",
+                str(record_path),
+                "--base-dir",
+                str(base),
+                "--output",
+                str(output_path),
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            data = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertTrue(data["valid"])
+
+    def test_council_record_validator_rejects_missing_vote_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            record_path = _write_council_record_fixture(base, write_votes=False)
+            output_path = base / "validation.json"
+
+            result = _run_script(
+                "ibkr.scripts.validate_council_record",
+                "--input",
+                str(record_path),
+                "--base-dir",
+                str(base),
+                "--output",
+                str(output_path),
+            )
+
+            self.assertEqual(result.returncode, 1)
+            data = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertTrue(any(issue["code"] == "council.vote_missing" for issue in data["issues"]))
+
     def test_submit_order_refuses_noninteractive_confirmation(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             base = Path(temp_dir)
@@ -434,6 +607,142 @@ def _yahoo_cloudflare_fixture() -> dict:
             },
         ]
     }
+
+
+def _write_research_packet_fixture(
+    base: Path,
+    *,
+    write_findings: bool = True,
+    unsupported_agent_claim: bool = False,
+    prior_report_source: bool = False,
+) -> Path:
+    run_id = "20260510-test-net"
+    run_dir = base / "sandbox" / run_id
+    run_dir.mkdir(parents=True)
+    for name in ("symbol.json", "portfolio.json", "position-context.json", "target-context.json", "ibkr-news.json"):
+        write_json(run_dir / name, {"fixture": name})
+
+    routes = (
+        ("short-term-1-3m", "short_term_1_3m"),
+        ("medium-term-3-12m", "medium_term_3_12m"),
+        ("long-term-1y-plus", "long_term_1y_plus"),
+    )
+    agent_routes = []
+    for route_name, horizon in routes:
+        folder = run_dir / route_name
+        folder.mkdir()
+        if write_findings:
+            write_json(
+                folder / "findings.json",
+                {
+                    "target": "NET",
+                    "run_id": run_id,
+                    "horizon": horizon,
+                    "sources": [{"id": "src-1", "url": "https://example.com/net", "date": "2026-05-10"}],
+                    "facts": [{"id": "fact-1", "text": "fixture fact"}],
+                    "stats": [{"metric": "return_1m_pct", "value": "1.0"}],
+                    "contrarian_evidence": ["fixture risk"],
+                    "pruned_routes": ["fixture dead end"],
+                    "missing_evidence": ["fixture gap"],
+                    "no_action_triggers": ["fixture trigger"],
+                    "confidence": "medium",
+                },
+            )
+        agent_routes.append(
+            {
+                "name": route_name,
+                "folder": f"sandbox\\{run_id}\\{route_name}",
+                "route": "fixture route",
+                "status": "completed",
+            }
+        )
+
+    if prior_report_source:
+        source = "reports\\20260510-net.md"
+    elif unsupported_agent_claim:
+        source = "market-research-agent summary"
+    else:
+        source = "https://example.com/net"
+    finding = "agent-reported price was 100" if unsupported_agent_claim else "fixture sourced finding"
+    packet_path = run_dir / "research-packet.json"
+    write_json(
+        packet_path,
+        {
+            "schema_version": "ibkr.research_packet.v1",
+            "target": {"resolved_symbol": "NET", "resolved_name": "Cloudflare, Inc."},
+            "run_id": run_id,
+            "artifact_paths": {
+                "symbol_resolution": f"sandbox\\{run_id}\\symbol.json",
+                "portfolio_snapshot": f"sandbox\\{run_id}\\portfolio.json",
+                "position_context": f"sandbox\\{run_id}\\position-context.json",
+                "target_context": f"sandbox\\{run_id}\\target-context.json",
+                "ibkr_news": f"sandbox\\{run_id}\\ibkr-news.json",
+            },
+            "agent_routes": agent_routes,
+            "sourced_findings": [
+                {
+                    "finding": finding,
+                    "source": source,
+                    "date": "2026-05-10",
+                    "horizons": list(HORIZONS_FOR_TESTS),
+                    "confidence": "high",
+                }
+            ],
+            "horizon_analysis": {horizon: {"decision_view": "watch"} for horizon in HORIZONS_FOR_TESTS},
+        },
+    )
+    return packet_path
+
+
+HORIZONS_FOR_TESTS = ("short_term_1_3m", "medium_term_3_12m", "long_term_1y_plus")
+
+
+def _write_council_record_fixture(base: Path, *, write_votes: bool = True) -> Path:
+    run_id = "20260510-test-net"
+    run_dir = base / "sandbox" / run_id
+    run_dir.mkdir(parents=True)
+    member = "council-gpt-55"
+    member_dir = run_dir / member
+    member_dir.mkdir()
+    if write_votes:
+        decisions = {
+            horizon: {
+                "decision": "watch",
+                "confidence": "medium",
+                "evidence_ids": ["fact-1"],
+                "disconfirming_evidence": ["fixture risk"],
+            }
+            for horizon in HORIZONS_FOR_TESTS
+        }
+        write_json(member_dir / "vote.json", {"member": member, "decisions": decisions, "overall": {"decision": "watch"}})
+        write_json(member_dir / "critique.json", {"member": member, "strongest_opposing_view": "fixture"})
+
+    record_path = run_dir / "report-input.json"
+    write_json(
+        record_path,
+        {
+            "schema_version": "ibkr.executive_decision_record_input.v1",
+            "run_id": run_id,
+            "target": "NET",
+            "thesis": "fixture",
+            "horizon_analysis": "fixture",
+            "horizon_analysis_structured": {horizon: {"decision": "watch"} for horizon in HORIZONS_FOR_TESTS},
+            "evidence": "fixture",
+            "council_decision": "watch",
+            "confidence": "medium",
+            "dissent": "fixture",
+            "proposed_action": "no action",
+            "confirmation_status": "not confirmed",
+            "council_process": {
+                "members": [member],
+                "vote_summary": {
+                    **{horizon: {"votes": {member: "watch"}, "final_consensus": "watch"} for horizon in HORIZONS_FOR_TESTS},
+                    "overall": {"votes": {member: "watch"}, "final_consensus": "watch"},
+                },
+            },
+        },
+    )
+    return record_path
 
 
 def _run_script(module: str, *args: str) -> subprocess.CompletedProcess[str]:

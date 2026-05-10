@@ -1,6 +1,6 @@
 """Safe IBKR trading research scaffolding."""
 
-from .audit import ExecutiveDecisionRecord, report_path, write_executive_report
+from .audit import ExecutiveDecisionRecord, report_path, report_path_with_run_id, write_executive_report
 from .client import IBKRClientError, LiveIBKRClient, stock_contract
 from .config import IBKRConfig, IBKRConfigError, load_env_file
 from .news import NewsHeadline, NewsProvider, NewsSnapshot, news_snapshot_to_dict
@@ -49,6 +49,7 @@ __all__ = [
     "load_env_file",
     "news_snapshot_to_dict",
     "report_path",
+    "report_path_with_run_id",
     "required_confirmation",
     "require_full_portfolio",
     "stock_contract",
