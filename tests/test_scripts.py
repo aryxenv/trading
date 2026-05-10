@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from argparse import Namespace
 from datetime import date, datetime, timezone
 from decimal import Decimal
 import json
@@ -8,20 +9,129 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from ibkr import (
     CashBalance,
     ExecutiveDecisionRecord,
     Holding,
+    NewsProvider,
+    NewsSnapshot,
     OpenOrder,
     PortfolioSnapshot,
+    news_snapshot_to_dict,
     snapshot_to_dict,
     write_executive_report,
 )
+from ibkr.client import _LiveIBKRApp
+from ibkr.news import parse_provider_codes, realtime_headline
 from ibkr.serialization import write_json
 
 
 class DeterministicScriptTests(unittest.TestCase):
+    def test_news_snapshot_serialization_and_provider_parsing(self) -> None:
+        headline = realtime_headline(
+            provider_code="brfg",
+            article_id="A1",
+            headline="{A:1:L:en}Cloudflare headline",
+            timestamp=1_714_000_000_000,
+            extra_data="NET",
+        )
+        data = news_snapshot_to_dict(
+            NewsSnapshot(
+                target="NET",
+                con_id=123,
+                contract_symbol="NET",
+                providers=(NewsProvider(code="BRFG", name="Briefing.com"),),
+                headlines=(headline,),
+                warnings=("supplemental source",),
+            )
+        )
+
+        self.assertEqual(parse_provider_codes("BRFG, brfupdn+DJNL"), ("BRFG", "BRFUPDN", "DJNL"))
+        self.assertEqual(data["schema_version"], "ibkr.news_snapshot.v1")
+        self.assertEqual(data["providers"][0]["code"], "BRFG")
+        self.assertEqual(data["headlines"][0]["provider_code"], "BRFG")
+        self.assertEqual(data["headlines"][0]["headline"], "Cloudflare headline")
+        self.assertEqual(data["headlines"][0]["source"], "realtime")
+        self.assertIn("2024", data["headlines"][0]["time"])
+
+    def test_live_app_collects_and_deduplicates_news_callbacks(self) -> None:
+        app = _LiveIBKRApp()
+        provider = type("Provider", (), {"code": "brfg", "name": "Briefing.com"})()
+
+        app.newsProviders([provider])
+        app.tickNews(9202, 1_714_000_000_000, "BRFG", "A1", "Cloudflare headline", "NET")
+        app.tickNews(9202, 1_714_000_000_000, "BRFG", "A1", "Cloudflare headline", "NET")
+        app.historicalNews(9201, "20260510 12:00:00", "DJNL", "A2", "Older headline")
+        app.error(9202, 366, "No news provider subscriptions found")
+
+        self.assertTrue(app.news_providers_done.is_set())
+        self.assertEqual(app.news_providers[0].code, "BRFG")
+        self.assertEqual(len(app.news_headlines), 2)
+        self.assertEqual(app.news_headlines[0].headline, "Cloudflare headline")
+        self.assertIn("9202:366", app.request_errors[9202][0])
+
+    def test_ibkr_news_script_uses_deterministic_client(self) -> None:
+        from ibkr.scripts import ibkr_news
+
+        test_case = self
+
+        class FakeClient:
+            closed = False
+
+            def __init__(self, config) -> None:
+                self.config = config
+
+            def load_news_snapshot(
+                self,
+                target,
+                providers=None,
+                *,
+                realtime_seconds=30.0,
+                max_headlines=25,
+                historical_limit=10,
+            ) -> NewsSnapshot:
+                test_case.assertEqual(target, "NET")
+                test_case.assertEqual(providers, "BRFG")
+                test_case.assertEqual(realtime_seconds, 0)
+                test_case.assertEqual(max_headlines, 1)
+                test_case.assertEqual(historical_limit, 0)
+                return NewsSnapshot(
+                    target=target,
+                    providers=(NewsProvider(code="BRFG", name="Briefing.com"),),
+                    headlines=(
+                        realtime_headline(
+                            provider_code="BRFG",
+                            article_id="A1",
+                            headline="Cloudflare headline",
+                            timestamp=1_714_000_000_000,
+                            extra_data="NET",
+                        ),
+                    ),
+                )
+
+            def close(self) -> None:
+                type(self).closed = True
+
+        with (
+            patch.object(ibkr_news, "LiveIBKRClient", FakeClient),
+            patch.object(ibkr_news, "config_from_env", lambda: object()),
+        ):
+            result = ibkr_news.main_impl(
+                Namespace(
+                    target="NET",
+                    providers="BRFG",
+                    realtime_seconds=0,
+                    max_headlines=1,
+                    historical_limit=0,
+                )
+            )
+
+        self.assertTrue(FakeClient.closed)
+        self.assertEqual(result["schema_version"], "ibkr.news_snapshot.v1")
+        self.assertEqual(result["headlines"][0]["headline"], "Cloudflare headline")
+
     def test_symbol_resolve_from_yahoo_fixture(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             base = Path(temp_dir)

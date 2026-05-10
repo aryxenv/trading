@@ -19,11 +19,12 @@ Process:
 4. Run `uv run python -m ibkr.scripts.portfolio_snapshot --output sandbox/<run-id>/portfolio.json`.
 5. Run `uv run python -m ibkr.scripts.position_context --target <resolved-symbol> --snapshot sandbox/<run-id>/portfolio.json --output sandbox/<run-id>/position-context.json`.
 6. Run `uv run python -m ibkr.scripts.target_context --target <resolved-symbol> --snapshot sandbox/<run-id>/portfolio.json --output sandbox/<run-id>/target-context.json`.
-7. If the target is absent, treat it as a new investment using available cash plus portfolio shift candidates.
-8. Spawn independent `market-research-agent` runs. Give each one a unique sandbox folder and a clear research route.
-9. Require web/news evidence, historical trend checks, top-down analysis, statistical grounding, bias stripping, and pruned dead ends.
-10. Consolidate only sourced, factual findings.
-11. Hand the packet to `council-orchestrator`.
-12. Write the final executive record with `uv run python -m ibkr.scripts.write_report`.
+7. Run `uv run python -m ibkr.scripts.ibkr_news --target <resolved-symbol> --output sandbox/<run-id>/ibkr-news.json`.
+8. If the target is absent, treat it as a new investment using available cash plus portfolio shift candidates.
+9. Spawn independent `market-research-agent` runs. Give each one a unique sandbox folder, `ibkr-news.json`, and a clear research route.
+10. Require web/news evidence, historical trend checks, top-down analysis, statistical grounding, bias stripping, and pruned dead ends.
+11. Consolidate only sourced, factual findings. Treat missing IBKR API headlines as neutral, not bearish.
+12. Hand the packet to `council-orchestrator`.
+13. Write the final executive record with `uv run python -m ibkr.scripts.write_report`.
 
 Never recommend or prepare a live order unless `trade-execution-gate` verifies explicit user confirmation.
