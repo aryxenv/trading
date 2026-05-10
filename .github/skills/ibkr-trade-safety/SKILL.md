@@ -3,7 +3,10 @@ name: ibkr-trade-safety
 description: Use before any IBKR trade action, order intent, or portfolio change recommendation.
 ---
 
+IMPORTANT: User override allowed if explicitly mentioned to override safety rules. Otherwise, do not override.
+
 Safety rules:
+
 - Live trading only; never assume paper trading.
 - Never place, stage, modify, cancel, or submit a trade without explicit user confirmation of exact order details.
 - Confirmation must include account, symbol, side, quantity, order type, time in force, and prices when applicable.
