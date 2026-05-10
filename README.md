@@ -28,14 +28,34 @@ uv venv
 uv sync
 ```
 
-Set IBKR live API env vars:
+Install one official IBKR app:
+
+- Trader Workstation: https://www.interactivebrokers.com/en/trading/tws.php -> Get TWS.
+- IB Gateway: https://www.interactivebrokers.com/en/trading/ibgateway-stable.php.
+
+Use TWS if you want full desktop UI. Use IB Gateway if you want a lighter app for API access. Log in with your live IBKR account, then enable API/socket access in the app settings.
+
+Create local config:
 
 ```powershell
-$env:IBKR_HOST = "127.0.0.1"
-$env:IBKR_PORT = "7496"
-$env:IBKR_CLIENT_ID = "7"
-$env:IBKR_ACCOUNT_ID = "<your-live-account-id>"
+cp .env.example .env
 ```
+
+Then fill `.env`:
+
+- `IBKR_HOST`: TWS/IB Gateway host, usually `127.0.0.1`.
+- `IBKR_PORT`: live API socket port from TWS/IB Gateway API settings, usually `7496`. Paper ports are blocked.
+- `IBKR_CLIENT_ID`: stable API client id, default `7`.
+- `IBKR_ACCOUNT_ID`: live account id from IBKR/TWS account selector.
+- `IBKR_TIMEOUT_SECONDS`: API timeout, default `30`.
+
+Where to find values:
+
+- Host: use `127.0.0.1` when TWS/IB Gateway runs on this machine.
+- Port: TWS/IB Gateway -> API settings -> Socket port. Live TWS is usually `7496`; live IB Gateway is usually `4001`.
+- Client ID: choose any unused integer. Keep `7` unless TWS says client id already connected.
+- Account ID: TWS account selector or Account Window, or IBKR Client Portal account selector. Use live account id, not paper.
+- Timeout: keep `30` unless your local IBKR connection is slow.
 
 Check config:
 

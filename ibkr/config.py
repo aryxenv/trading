@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import os
+from pathlib import Path
 
 
 class IBKRConfigError(ValueError):
@@ -38,6 +39,7 @@ class IBKRConfig:
 
     @classmethod
     def from_env(cls, prefix: str = "IBKR_") -> "IBKRConfig":
+        load_env_file()
         return cls(
             host=os.getenv(f"{prefix}HOST", "127.0.0.1"),
             port=_int_env(f"{prefix}PORT", DEFAULT_LIVE_PORT),
@@ -45,6 +47,43 @@ class IBKRConfig:
             account_id=os.getenv(f"{prefix}ACCOUNT_ID") or None,
             timeout_seconds=_float_env(f"{prefix}TIMEOUT_SECONDS", 30.0),
         )
+
+
+def load_env_file(path: Path | str | None = None, *, override: bool = False) -> Path | None:
+    env_path = Path(path) if path is not None else _find_env_file()
+    if env_path is None or not env_path.exists():
+        return None
+
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line.removeprefix("export ").strip()
+        if "=" not in line:
+            continue
+
+        key, raw_value = line.split("=", 1)
+        key = key.strip()
+        if not key or (key in os.environ and not override):
+            continue
+        os.environ[key] = _clean_env_value(raw_value)
+    return env_path
+
+
+def _find_env_file() -> Path | None:
+    for directory in (Path.cwd(), *Path.cwd().parents):
+        candidate = directory / ".env"
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _clean_env_value(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+        return value[1:-1]
+    return value
 
 
 def _int_env(name: str, default: int) -> int:

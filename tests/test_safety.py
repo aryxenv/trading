@@ -1,8 +1,10 @@
 from datetime import date
 from decimal import Decimal
+import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from ibkr import (
     CashBalance,
@@ -26,6 +28,35 @@ class SafetyScaffoldTests(unittest.TestCase):
     def test_rejects_paper_ports(self) -> None:
         with self.assertRaises(IBKRConfigError):
             IBKRConfig(port=7497)
+
+    def test_from_env_loads_dotenv_without_overriding_process_env(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir, patch.dict(os.environ, {"IBKR_PORT": "7496"}, clear=True):
+            base = Path(temp_dir)
+            (base / ".env").write_text(
+                "\n".join(
+                    [
+                        "IBKR_HOST=192.0.2.10",
+                        "IBKR_PORT=4002",
+                        "IBKR_CLIENT_ID=11",
+                        "IBKR_ACCOUNT_ID=U1234567",
+                        "IBKR_TIMEOUT_SECONDS=15",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            current = Path.cwd()
+            try:
+                os.chdir(base)
+                config = IBKRConfig.from_env()
+            finally:
+                os.chdir(current)
+
+        self.assertEqual(config.host, "192.0.2.10")
+        self.assertEqual(config.port, 7496)
+        self.assertEqual(config.client_id, 11)
+        self.assertEqual(config.account_id, "U1234567")
+        self.assertEqual(config.timeout_seconds, 15)
 
     def test_target_context_uses_existing_holding(self) -> None:
         snapshot = PortfolioSnapshot(
