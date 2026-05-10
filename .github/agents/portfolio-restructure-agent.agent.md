@@ -22,6 +22,12 @@ Command sequence:
 2. Run `uv run python -m ibkr.scripts.restructure_context --snapshot sandbox/<run-id>/portfolio.json --output sandbox/<run-id>/restructure-context.json`.
 3. For any named holding, run `uv run python -m ibkr.scripts.position_context --target <target> --snapshot sandbox/<run-id>/portfolio.json --output sandbox/<run-id>/position-context-<target>.json`.
 
-Output a concise restructure packet with no-action as the default if data is incomplete or risk limits are unclear, then hand the packet to `council-orchestrator`.
+Output a concise restructure packet with no-action as the default if data is incomplete or risk limits are unclear.
+
+Council handoff contract:
+- Restructure analysis is not complete until `council-orchestrator` has run.
+- Write the packet to `sandbox/<run-id>/restructure-packet.json`.
+- Immediately invoke `council-orchestrator` with the `agent` tool, passing the packet path and a concise summary. Wait for it to finish and return its final report path.
+- Do not ask the user to manually start council review.
 
 Do not place, stage, modify, cancel, or submit trades.
