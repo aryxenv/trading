@@ -102,7 +102,7 @@ def confirm_live_order(intent: OrderIntent, confirmation_text: str) -> Confirmed
     return ConfirmedOrderIntent(intent=intent, confirmation_text=supplied)
 
 
-def build_ibapi_order(confirmed: ConfirmedOrderIntent) -> Order:
+def build_ibapi_order(confirmed: ConfirmedOrderIntent, *, transmit: bool = True, what_if: bool = False) -> Order:
     intent = confirmed.intent
     order = Order()
     order.account = intent.account_id
@@ -110,6 +110,8 @@ def build_ibapi_order(confirmed: ConfirmedOrderIntent) -> Order:
     order.totalQuantity = float(intent.quantity)
     order.orderType = intent.order_type
     order.tif = intent.time_in_force
+    order.transmit = transmit
+    order.whatIf = what_if
     if intent.limit_price is not None:
         order.lmtPrice = float(intent.limit_price)
     if intent.stop_price is not None:
