@@ -35,6 +35,8 @@ Install one official IBKR app:
 
 Use TWS if you want full desktop UI. Use IB Gateway if you want a lighter app for API access. Log in with your live IBKR account, then enable API/socket access in the app settings.
 
+On TWS, make sure to turn off "Read-Only API", unless you explicitly do not want to make actions via API.
+
 Create local config:
 
 ```powershell
