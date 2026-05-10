@@ -4,7 +4,7 @@
 - Always use `uv`: `uv run ...` for commands and `uv add ...` for dependencies.
 - Keep Markdown lean, factual, and easy to scan.
 - Use IBKR for portfolio context and trading workflows. Never use mock portfolio facts when IBKR data is required.
-- Treat a prompt that is only a ticker or company name as a research-orchestrator request.
+- Treat a prompt that is only a ticker or company name as a research-orchestrator request. Do not invoke `trading-research-workflow` directly from the root assistant for these prompts; the orchestrator and delegated agents invoke it after routing starts.
 - Treat portfolio restructure requests as full-portfolio IBKR analysis, not single-name research.
 - For ticker/company research, use the user's IBKR data for the affected holding. If there is no holding, analyze it as a potential new investment using available cash and possible portfolio shifts.
 - Live trading only. Do not assume or switch to paper trading.

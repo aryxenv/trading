@@ -1,7 +1,13 @@
 ---
 name: trading-research-workflow
-description: Use for ticker or company trading research that must be web-grounded, statistical, unbiased, and top-down.
+description: Internal checklist for research agents. Do not invoke directly for bare ticker/company prompts; route those to research-orchestrator first.
 ---
+
+Invocation boundary:
+
+- Root assistant must not invoke this skill directly for user ticker/company prompts.
+- Bare ticker/company input must start `research-orchestrator`; that agent and its delegated agents invoke `/trading-research-workflow`.
+- Use this skill only after orchestration has begun, or when an agent explicitly needs the research checklist.
 
 Research checklist:
 
