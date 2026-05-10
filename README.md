@@ -1,6 +1,6 @@
 # IBKR Trading Research Orchestration
 
-Lean IBKR workflow for research-first trading decisions.
+Agentic orchestration of trading on IBKR with Github Copilot agents. Starts with researching following a top-down approach, passes research onto council agents (GPT-5.5, Opus 4.6, Gemini 3.1 Pro) and defines actionable decision report.
 
 It gives Copilot agents deterministic Python commands for:
 
@@ -19,6 +19,10 @@ It gives Copilot agents deterministic Python commands for:
 - If evidence, risk limits, or consensus are weak, default is no action.
 
 ## Setup
+
+```powershell
+uv venv
+```
 
 ```powershell
 uv sync
@@ -41,6 +45,8 @@ uv run python -m ibkr.scripts.health_check --connect
 ```
 
 ## Normal flow
+
+Not to be done by user, give the input in natural language to Github Copilot / Copilot CLI and it will run everything for you.
 
 1. User gives target, like `CLOUDFLARE` or `GOOGL`.
 2. Resolve symbol:
