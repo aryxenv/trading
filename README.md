@@ -8,6 +8,7 @@ It gives Copilot agents deterministic Python commands for:
 - loading live IBKR portfolio context
 - loading supplemental subscribed IBKR API news
 - building target or restructure context
+- validating research and council artifacts
 - writing research/council reports
 - validating order intent
 - blocking live order submit until exact human confirmation
@@ -72,6 +73,10 @@ uv run python -m ibkr.scripts.health_check --connect
 
 Not to be done by user, give the input in natural language to Github Copilot / Copilot CLI and it will run everything for you.
 
+Default mode is **dev/foreground**. Copilot should keep the root conversation in charge of visible phases: setup, horizon research, packet validation, council, report validation, and final summary. Use autonomous/background mode only when explicitly requested.
+
+Prior reports under `reports/` are audit logs. They should not be read or cited as evidence for fresh research, except when explicitly reviewing an old decision or validating an order intent tied to that report.
+
 1. User gives target, like `CLOUDFLARE` or `GOOGL`.
 2. Resolve symbol:
 
@@ -98,20 +103,33 @@ Not to be done by user, give the input in natural language to Github Copilot / C
    uv run python -m ibkr.scripts.ibkr_news --target NET --output sandbox/run/ibkr-news.json
    ```
 
-6. Run web-grounded research through `research-orchestrator`; it sends separate short-, medium-, and long-term routes to market agents, writes the research packet, and invokes `council-orchestrator`.
-7. The council votes separately for short-term, medium-term, long-term, then writes the final report by running:
+6. Run horizon research routes. Each market route writes `sandbox/run/<route>/findings.json`.
+7. Write and validate the research packet:
+
+   ```powershell
+   uv run python -m ibkr.scripts.validate_research_packet --input sandbox/run/research-packet.json
+   ```
+
+8. Run council review. Each council member writes `vote.json` and `critique.json` in its own sandbox folder.
+9. Validate the council record:
+
+   ```powershell
+   uv run python -m ibkr.scripts.validate_council_record --input sandbox/run/report-input.json
+   ```
+
+10. The council votes separately for short-term, medium-term, long-term, then writes the final report by running:
 
    ```powershell
    uv run python -m ibkr.scripts.write_report --input sandbox/run/report-input.json
    ```
 
-8. If action exists, validate intent:
+11. If action exists, validate intent:
 
    ```powershell
    uv run python -m ibkr.scripts.create_order_intent --input sandbox/run/order-intent.json --output sandbox/run/validated-intent.json
    ```
 
-9. Submit only after exact user confirmation in interactive terminal:
+12. Submit only after exact user confirmation in interactive terminal:
 
    ```powershell
    uv run python -m ibkr.scripts.submit_order --input sandbox/run/validated-intent.json
@@ -132,10 +150,11 @@ Not to be done by user, give the input in natural language to Github Copilot / C
 
 ## Agent roles
 
-- `research-orchestrator`: turns ticker/company input into horizon-split research run.
-- `market-research-agent`: independent web/stat route in own `sandbox/` folder, usually scoped to one horizon.
-- `council-orchestrator`: runs model council and records horizon-split decision.
+- Root assistant: default dev/foreground workflow owner; runs visible phase loop and validators.
+- `research-orchestrator`: autonomous/background ticker workflow; not default when visibility matters.
+- `market-research-agent`: independent web/stat route in own `sandbox/` folder, usually scoped to one horizon, writes `findings.json`.
+- `council-orchestrator`: runs model council, reads member artifacts, validates council record, and records horizon-split decision.
 - `portfolio-restructure-agent`: uses full portfolio context for horizon-split rebalance work.
 - `trade-execution-gate`: final order safety gate; blocks horizon mismatches.
 
-Reports go in `reports/`. Agent scratch work goes in `sandbox/`.
+Reports go in `reports/`. Same-day reruns use a same-folder run-id suffix if the canonical report already exists. Agent artifacts go in `sandbox/`.
