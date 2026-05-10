@@ -28,6 +28,13 @@ uv venv
 uv sync
 ```
 
+Install one official IBKR app:
+
+- Trader Workstation: https://www.interactivebrokers.com/en/trading/tws.php -> Get TWS.
+- IB Gateway: https://www.interactivebrokers.com/en/trading/ibgateway-stable.php.
+
+Use TWS if you want full desktop UI. Use IB Gateway if you want a lighter app for API access. Log in with your live IBKR account, then enable API/socket access in the app settings.
+
 Create local config:
 
 ```powershell
