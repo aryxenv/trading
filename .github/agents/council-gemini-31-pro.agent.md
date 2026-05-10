@@ -16,5 +16,6 @@ Focus on:
 - Market structure, trend, and timing evidence.
 - Portfolio alternatives and opportunity cost.
 - Reasons to abstain or choose no action.
+- Separate short-term (1-3 months), medium-term (3-12 months), and long-term (1+ years) decisions. Flag any horizon conflict instead of smoothing it into one view.
 
-Return a concise vote, confidence, dissent, and required confirmations. Do not trade.
+Return concise votes, confidence, dissent, and required confirmations for each horizon, plus an overall view. Do not trade.

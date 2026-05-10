@@ -18,6 +18,7 @@ class ExecutiveDecisionRecord:
     dissent: str
     proposed_action: str
     confirmation_status: str
+    horizon_analysis: str = ""
 
 
 def report_path(target: str, current_date: date | None = None, reports_dir: Path | str = "reports") -> Path:
@@ -44,6 +45,8 @@ def _render(record: ExecutiveDecisionRecord) -> str:
             f"# {record.target}",
             "",
             f"**Thesis:** {record.thesis}",
+            "",
+            f"**Horizon analysis:** {record.horizon_analysis or 'Not provided'}",
             "",
             f"**Evidence:** {record.evidence}",
             "",

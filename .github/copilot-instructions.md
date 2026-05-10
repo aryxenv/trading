@@ -15,6 +15,7 @@
 - For ticker/company research, run `uv run python -m ibkr.scripts.ibkr_news --target <resolved-symbol> --output sandbox/<run-id>/ibkr-news.json`; treat it as supplemental to web news.
 - For order intent, run `uv run python -m ibkr.scripts.create_order_intent`; live submit is only through interactive `uv run python -m ibkr.scripts.submit_order`.
 - Every trade idea must be grounded in web/news evidence, statistical checks, historical trends, top-down analysis, bias checks, and discarded weak routes.
+- Separate every research and council decision across short-term (1-3 months), medium-term (3-12 months), and long-term (1+ years); do not blend conflicting horizons into one recommendation.
 - Prefer no action when evidence is stale, weak, conflicting, or risk limits are unspecified.
 - Research agents must write scratch work under `sandbox/<run-id>/<agent-name>/`.
 - Final executive decision records go in `reports/YYYYMMDD-<ticker-or-company>.md`.

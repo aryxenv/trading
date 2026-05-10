@@ -16,8 +16,9 @@ It gives Copilot agents deterministic Python commands for:
 
 - Live IBKR only. Paper ports `4002` and `7497` are rejected.
 - No trade can be placed from research alone.
-- Every order needs current portfolio context, sourced research, council review, tracked report, and exact interactive user confirmation.
+- Every order needs current portfolio context, sourced research, council review, tracked report, exact interactive user confirmation, and a horizon match to the user's intent.
 - If evidence, risk limits, or consensus are weak, default is no action.
+- Research and council decisions are separated into short-term (1-3 months), medium-term (3-12 months), and long-term (1+ years).
 
 ## Setup
 
@@ -97,8 +98,8 @@ Not to be done by user, give the input in natural language to Github Copilot / C
    uv run python -m ibkr.scripts.ibkr_news --target NET --output sandbox/run/ibkr-news.json
    ```
 
-6. Run web-grounded research through `research-orchestrator`; it writes the research packet and invokes `council-orchestrator`.
-7. The council writes the final report by running:
+6. Run web-grounded research through `research-orchestrator`; it sends separate short-, medium-, and long-term routes to market agents, writes the research packet, and invokes `council-orchestrator`.
+7. The council votes separately for short-term, medium-term, long-term, then writes the final report by running:
 
    ```powershell
    uv run python -m ibkr.scripts.write_report --input sandbox/run/report-input.json
@@ -126,15 +127,15 @@ Not to be done by user, give the input in natural language to Github Copilot / C
    ```
 
 3. Run holding-level context for each affected ticker.
-4. Use `portfolio-restructure-agent`; it writes the restructure packet and invokes `council-orchestrator`.
+4. Use `portfolio-restructure-agent`; it writes short-, medium-, and long-term restructure sections, then invokes `council-orchestrator`.
 5. Act only through trade execution gate.
 
 ## Agent roles
 
-- `research-orchestrator`: turns ticker/company input into research run.
-- `market-research-agent`: independent web/stat route in own `sandbox/` folder.
-- `council-orchestrator`: runs model council and records decision.
-- `portfolio-restructure-agent`: uses full portfolio context for rebalance work.
-- `trade-execution-gate`: final order safety gate.
+- `research-orchestrator`: turns ticker/company input into horizon-split research run.
+- `market-research-agent`: independent web/stat route in own `sandbox/` folder, usually scoped to one horizon.
+- `council-orchestrator`: runs model council and records horizon-split decision.
+- `portfolio-restructure-agent`: uses full portfolio context for horizon-split rebalance work.
+- `trade-execution-gate`: final order safety gate; blocks horizon mismatches.
 
 Reports go in `reports/`. Agent scratch work goes in `sandbox/`.
