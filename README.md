@@ -35,6 +35,8 @@ Install one official IBKR app:
 
 Use TWS if you want full desktop UI. Use IB Gateway if you want a lighter app for API access. Log in with your live IBKR account, then enable API/socket access in the app settings.
 
+Client Portal note: this repo currently uses IBKR's TWS API through Python `ibapi`, so TWS or IB Gateway is required. IBKR Web API / Client Portal is official too, but it is a different HTTP API. For retail accounts it uses Client Portal Gateway, a small local Java app, not this repo's current socket setup.
+
 Create local config:
 
 ```powershell
