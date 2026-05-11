@@ -6,6 +6,7 @@ It gives Copilot agents deterministic Python commands for:
 
 - resolving company names to tickers
 - loading live IBKR portfolio context
+- maintaining a local `PROFILE.md` risk profile from IBKR snapshots
 - loading supplemental subscribed IBKR API news
 - building target or restructure context
 - validating research and council artifacts
@@ -18,7 +19,7 @@ It gives Copilot agents deterministic Python commands for:
 - Live IBKR only. Paper ports `4002` and `7497` are rejected.
 - No trade can be placed from research alone.
 - Every order needs current portfolio context, sourced research, council review, tracked report, exact interactive user confirmation, and a horizon match to the user's intent.
-- If evidence, risk limits, or consensus are weak, default is no action.
+- `PROFILE.md` supplies the default sizing/risk basis for research and council decisions. If evidence, profile fit, or consensus are weak, default is no action.
 - Research and council decisions are separated into short-term (1-3 months), medium-term (3-12 months), and long-term (1+ years).
 
 ## Setup
@@ -69,7 +70,18 @@ uv run python -m ibkr.scripts.health_check
 uv run python -m ibkr.scripts.health_check --connect
 ```
 
+Create or refresh your local risk profile: (ask to agent)
+
+```txt
+profile me
+```
+
+This writes `PROFILE.md` from IBKR portfolio context. The file is local-only and ignored by git.
+
 ## Ideal Inputs
+
+> [!NOTE]
+> `PROFILE.md` is recommended for personalized decisions. Without it, council has no stable sizing/risk basis and will usually choose neutral/no action.
 
 ### Per ticker/company
 
@@ -112,46 +124,52 @@ Prior reports under `reports/` are audit logs. They should not be read or cited 
    uv run python -m ibkr.scripts.portfolio_snapshot --output sandbox/run/portfolio.json
    ```
 
-4. Build target context:
+4. Read or update local risk profile from the portfolio snapshot:
+
+   ```txt
+   PROFILE.md
+   ```
+
+5. Build target context:
 
    ```powershell
    uv run python -m ibkr.scripts.position_context --target NET --snapshot sandbox/run/portfolio.json --output sandbox/run/position-context.json
    uv run python -m ibkr.scripts.target_context --target NET --snapshot sandbox/run/portfolio.json --output sandbox/run/target-context.json
    ```
 
-5. Load subscribed IBKR API news:
+6. Load subscribed IBKR API news:
 
    ```powershell
    uv run python -m ibkr.scripts.ibkr_news --target NET --output sandbox/run/ibkr-news.json
    ```
 
-6. Run horizon research routes. Each market route writes `sandbox/run/<route>/findings.json`.
-7. Write and validate the research packet:
+7. Run horizon research routes. Each market route writes `sandbox/run/<route>/findings.json`.
+8. Write and validate the research packet:
 
    ```powershell
    uv run python -m ibkr.scripts.validate_research_packet --input sandbox/run/research-packet.json
    ```
 
-8. Run council review. Each council member writes `vote.json` and `critique.json` in its own sandbox folder.
-9. Validate the council record:
+9. Run council review. Each council member reads `PROFILE.md`/profile context and writes `vote.json` and `critique.json` in its own sandbox folder.
+10. Validate the council record:
 
-   ```powershell
-   uv run python -m ibkr.scripts.validate_council_record --input sandbox/run/report-input.json
-   ```
+```powershell
+uv run python -m ibkr.scripts.validate_council_record --input sandbox/run/report-input.json
+```
 
-10. The council votes separately for short-term, medium-term, long-term, then writes the final report by running:
+11. The council votes separately for short-term, medium-term, long-term, then writes the final report by running:
 
 ```powershell
 uv run python -m ibkr.scripts.write_report --input sandbox/run/report-input.json
 ```
 
-11. If action exists, validate intent:
+12. If action exists, validate intent:
 
 ```powershell
 uv run python -m ibkr.scripts.create_order_intent --input sandbox/run/order-intent.json --output sandbox/run/validated-intent.json
 ```
 
-12. Submit only after exact user confirmation in interactive terminal:
+13. Submit only after exact user confirmation in interactive terminal:
 
 ```powershell
 uv run python -m ibkr.scripts.submit_order --input sandbox/run/validated-intent.json
