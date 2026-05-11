@@ -8,11 +8,13 @@
 - In dev/foreground mode, do not launch the whole top-level research workflow as a background agent. The root assistant owns phase checkpoints: deterministic setup, horizon research, packet validation, council, report validation, and final summary.
 - Use `research-orchestrator` only for explicit autonomous/background mode. Synchronous custom agents still hide their internal work, so sync mode alone is not a visibility fix.
 - Treat portfolio restructure requests as full-portfolio IBKR analysis, not single-name research.
+- When the user says "profile me", "create my profile", "update my risk profile", "risk profile", or "refresh PROFILE.md", invoke the risk-profiler skill and create/update `PROFILE.md` from IBKR portfolio context.
 - For ticker/company research, use the user's IBKR data for the affected holding. If there is no holding, analyze it as a potential new investment using available cash and possible portfolio shifts.
 - Live trading only. Do not assume or switch to paper trading.
 - Never place, stage, modify, cancel, or submit any trade without explicit confirmation of the exact live order details.
 - Do not write ad hoc IBKR access code. Use deterministic commands under `ibkr.scripts`.
 - For IBKR context, run `uv run python -m ibkr.scripts.portfolio_snapshot --output sandbox/<run-id>/portfolio.json`, then derive target or restructure context from that snapshot.
+- Maintain local `PROFILE.md` as the user's risk profile derived from recent IBKR snapshots. After each portfolio snapshot, read `PROFILE.md`; if it is missing or stale, update it from the current snapshot before research/council handoff. Do not include account id in the profile.
 - For company names or typo-prone inputs, first run `uv run python -m ibkr.scripts.symbol_resolve --query <input> --output sandbox/<run-id>/symbol.json` and pass the resolved ticker to later scripts.
 - For ticker/company research, run `uv run python -m ibkr.scripts.ibkr_news --target <resolved-symbol> --output sandbox/<run-id>/ibkr-news.json`; treat it as supplemental to web news.
 - Before council handoff, validate the research packet with `uv run python -m ibkr.scripts.validate_research_packet --input sandbox/<run-id>/research-packet.json`. Before final report, validate the council record with `uv run python -m ibkr.scripts.validate_council_record --input sandbox/<run-id>/report-input.json`.
@@ -20,6 +22,6 @@
 - For order intent, run `uv run python -m ibkr.scripts.create_order_intent`; live submit is only through interactive `uv run python -m ibkr.scripts.submit_order`.
 - Every trade idea must be grounded in web/news evidence, statistical checks, historical trends, top-down analysis, bias checks, and discarded weak routes.
 - Separate every research and council decision across short-term (1-3 months), medium-term (3-12 months), and long-term (1+ years); do not blend conflicting horizons into one recommendation.
-- Prefer no action when evidence is stale, weak, conflicting, or risk limits are unspecified.
+- Use `PROFILE.md` risk gates when deciding whether evidence supports buy/add/hold/trim/sell/no-action. Prefer no action when evidence is stale, weak, conflicting, or profile gates fail; do not claim risk limits are unspecified when `PROFILE.md` covers the relevant sizing/risk basis.
 - Research agents must write durable artifacts under `sandbox/<run-id>/<agent-name>/`, including `findings.json` for research routes and `vote.json` / `critique.json` for council members.
 - Final executive decision records go in `reports/YYYYMMDD-<ticker-or-company>.md`; same-day reruns use same-folder deterministic suffixes, not run-specific report subdirectories.

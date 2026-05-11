@@ -13,6 +13,7 @@ Use `/portfolio-restructure-workflow`, `/trading-research-workflow`, and `/ibkr-
 
 Required context:
 - Current holdings, cash, account values, concentration, and unrealized P/L where available.
+- `PROFILE.md` risk profile: sizing bands, cash buffer, concentration limits, and speculative exposure gates.
 - Holding-level impact for any affected ticker or company.
 - Candidate funding sources when a new investment is considered.
 - Portfolio shifts that reduce weak, concentrated, or unsupported exposures.
@@ -20,10 +21,11 @@ Required context:
 
 Command sequence:
 1. Run `uv run python -m ibkr.scripts.portfolio_snapshot --output sandbox/<run-id>/portfolio.json`.
-2. Run `uv run python -m ibkr.scripts.restructure_context --snapshot sandbox/<run-id>/portfolio.json --output sandbox/<run-id>/restructure-context.json`.
-3. For any named holding, run `uv run python -m ibkr.scripts.position_context --target <target> --snapshot sandbox/<run-id>/portfolio.json --output sandbox/<run-id>/position-context-<target>.json`.
+2. Read `PROFILE.md`; if missing or stale, update it from `portfolio.json` before analysis. Exclude account id.
+3. Run `uv run python -m ibkr.scripts.restructure_context --snapshot sandbox/<run-id>/portfolio.json --output sandbox/<run-id>/restructure-context.json`.
+4. For any named holding, run `uv run python -m ibkr.scripts.position_context --target <target> --snapshot sandbox/<run-id>/portfolio.json --output sandbox/<run-id>/position-context-<target>.json`.
 
-Output a concise restructure packet with no-action as the default if data is incomplete or risk limits are unclear. The packet must include `horizon_analysis` split into `short_term_1_3m`, `medium_term_3_12m`, and `long_term_1y_plus`.
+Output a concise restructure packet with no-action as the default if data is incomplete, profile gates fail, or horizon conflicts remain unresolved. The packet must include `PROFILE.md`/profile context and `horizon_analysis` split into `short_term_1_3m`, `medium_term_3_12m`, and `long_term_1y_plus`.
 
 Council handoff contract:
 - Restructure analysis is not complete until `council-orchestrator` has run.
